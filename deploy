@@ -1,0 +1,110 @@
+#!/usr/bin/env python3
+
+# Imports
+import json, subprocess, os, sys
+
+# Opts
+stdout = False
+stderr = True
+config_file = "deploy_config.json"
+exclusive = False
+for opt in sys.argv[1:]:
+	if opt == "-q":
+		stdout = False
+		stderr = False
+	elif opt == "-d":
+		stdout = True
+		stderr = True
+	elif opt == "-v":
+		stdout = True
+		stderr = True
+	elif opt == "-c":
+		i = sys.argv.index("-c")
+		config_file = sys.argv[i+1]
+	elif opt == "-s":
+		exclusive = True
+		i = sys.argv.index("-s")
+		step_name = sys.argv[i+1]
+
+# Functions
+def echo(line):
+	if stdout:
+		sys.stdout.write("{0}\n".format(line))
+
+def out(text):
+	if stdout:
+		sys.stdout.write("{0}".format(text))
+		sys.stdout.flush()
+
+def err(text):
+	if stderr:
+		sys.stderr.write("{0}".format(text))
+		sys.stderr.flush()
+
+def clean_env_vars(items):
+	for key, value in items:
+		del os.environ[str(key)]
+		os.unsetenv(str(key))
+
+# Main
+try:
+	json_config = json.load(open(config_file))
+except FileNotFoundError as e:
+	sys.stderr.write("Error ({}): Configuration file '{}' not found\n".format(e.errno, config_file))
+	exit(e.errno)
+
+steps = json_config['steps']
+for step in steps:
+	if 'skip' in step and step['skip'] == True:
+		continue
+
+	if 'name' not in step:
+		step['name'] = "unnamed_step"
+
+	if exclusive:
+		if step['name'] == step_name:
+			out("[*] Exclusively running '{}' from '{}'\n".format(step['name'], config_file))
+		else:
+			continue
+
+	try:
+		if not os.path.isfile(step['module']):
+			sys.stderr.write("[?] {}: Skipping: Cannot find '{}' module/executable. Please check config.\n".format(step['name'], step['module']))
+			continue
+	except KeyError:
+		sys.stderr.write("[?] {}: Skipping: Missing module attribute in step config. Please check config.\n".format(step['name']))
+		continue
+
+	env_args = os.environ
+	for key, value in step.items():
+		env_args[key] = str(value)
+
+	err("[*] {}: Running.\n".format(step['name']))
+	p = subprocess.Popen([step['module']], env=env_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+	while p.poll() is None:
+		try:
+			for line in p.stdout:
+				out("[*] {}: {}".format(step['name'], line.decode('UTF-8')))
+			for line in p.stderr:
+				err("[?] {}: {}".format(step['name'], line.decode('UTF-8')))
+		except ValueError:
+			pass
+		p.stdout.close()
+		p.stderr.close()
+
+	if 'result' in step:
+		if p.returncode == step['result'] or step['result'] == -1 :
+			err("[*] {}: Done ({}).\n".format(step['name'], p.returncode))
+		else:
+			err("[!] {}: Failed. Module returned {}, expected {}\n".format(step['name'], p.returncode, step['result']))
+			clean_env_vars(step.items())
+			exit(p.returncode)
+	else:
+		if p.returncode != 0:
+			err("[!] {}: Failed ({}).\n".format(step['name'], p.returncode))
+			clean_env_vars(step.items())
+			exit(p.returncode)
+		else:
+			err("[*] {}: Done ({}).\n".format(step['name'], p.returncode))
+	clean_env_vars(step.items())
