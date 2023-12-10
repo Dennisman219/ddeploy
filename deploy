@@ -67,8 +67,9 @@ for step in steps:
 		else:
 			continue
 
+	path_to_module = os.path.join(os.path.dirname(__file__), "modules/", step['module'])
 	try:
-		if not os.path.isfile(step['module']):
+		if not os.path.isfile(path_to_module):
 			sys.stderr.write("[?] {}: Skipping: Cannot find '{}' module/executable. Please check config.\n".format(step['name'], step['module']))
 			continue
 	except KeyError:
@@ -80,7 +81,7 @@ for step in steps:
 		env_args[key] = str(value)
 
 	err("[*] {}: Running.\n".format(step['name']))
-	p = subprocess.Popen([step['module']], env=env_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	p = subprocess.Popen([path_to_module], env=env_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 	while p.poll() is None:
 		try:
