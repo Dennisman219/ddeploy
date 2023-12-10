@@ -1,10 +1,10 @@
 #!/bin/bash
 
-if [ -z ${target} ] || [ -z ${file} ] || [ -z ${target_location} ]; then
+if [ -z ${target} ] || [ -z "${file}" ] || [ -z ${target_location} ]; then
 	echo "Not all necessary variables are set." >&2
 	echo "Please make sure the following environment variables are set:" >&2
 	echo "target, file, target_location" >&2
 	exit 1
 fi
 
-scp ${file} $target:${target_location}
+scp -r ${file} $target:${target_location}
