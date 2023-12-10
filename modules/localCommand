@@ -1,0 +1,10 @@
+#!/bin/bash
+
+if [ -z "${command}" ]; then
+	echo "Not all necessary variables are set." >&2
+	echo "Please make sure the following variables are set:" >&2
+	echo "command" >&2
+	exit 1
+fi
+
+${command}
