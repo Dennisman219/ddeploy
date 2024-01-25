@@ -67,9 +67,12 @@ for step in steps:
 		else:
 			continue
 
-	path_to_module = os.path.join(os.path.dirname(__file__), "modules/", step['module'])
 	try:
-		if not os.path.isfile(path_to_module):
+		if os.path.isfile(os.path.join(os.path.dirname(__file__), "modules/", step['module'])):
+			path_to_module = os.path.join(os.path.dirname(__file__), "modules/", step['module'])
+		elif os.path.isfile(".deploy/modules/"+step['module']):
+			path_to_module = ".deploy/modules/"+step['module']
+		else:
 			sys.stderr.write("[?] {}: Skipping: Cannot find '{}' module/executable. Please check config.\n".format(step['name'], step['module']))
 			continue
 	except KeyError:
