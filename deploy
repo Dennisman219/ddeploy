@@ -6,7 +6,10 @@ import json, subprocess, os, sys
 # Opts
 stdout = False
 stderr = True
-config_file = "deploy_config.json"
+if os.path.isfile("deploy_config.json"): 
+	config_file = "deploy_config.json"
+elif os.path.isfile(".deploy/deploy_config.json"):
+	config_file = ".deploy/deploy_config.json"
 exclusive = False
 for opt in sys.argv[1:]:
 	if opt == "-q":
