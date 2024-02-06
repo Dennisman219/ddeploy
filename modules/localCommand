@@ -7,4 +7,4 @@ if [ -z "${command}" ]; then
 	exit 1
 fi
 
-${command}
+eval ${command}
