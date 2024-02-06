@@ -1,0 +1,14 @@
+#!/bin/bash
+
+if [ -z "${target}" ] || [ -z "${script}" ]; then
+	echo "Not all necessary variables are set." >&2
+	echo "Please make sure the following variables are set:" >&2
+	echo "target, script" >&2
+	exit 1
+fi
+
+scp -r ${script} $target:/tmp/script # TODO filename of script
+
+ssh $target "bash /tmp/script" || exitnr=$?
+
+exit $exitnr
