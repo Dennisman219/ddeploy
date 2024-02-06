@@ -6,10 +6,7 @@ import json, subprocess, os, sys
 # Opts
 stdout = False
 stderr = True
-if os.path.isfile("deploy_config.json"): 
-	config_file = "deploy_config.json"
-elif os.path.isfile(".deploy/deploy_config.json"):
-	config_file = ".deploy/deploy_config.json"
+config_file = "deploy_config.json"
 exclusive = False
 for opt in sys.argv[1:]:
 	if opt == "-q":
@@ -51,7 +48,13 @@ def clean_env_vars(items):
 
 # Main
 try:
-	json_config = json.load(open(config_file))
+    if os.path.isfile(config_file):
+	    #config_file = "deploy_config.json"
+	    pass
+    elif os.path.isfile(".deploy/"+config_file):
+	    config_file = ".deploy/"+config_file
+
+    json_config = json.load(open(config_file))
 except FileNotFoundError as e:
 	sys.stderr.write("Error ({}): Configuration file '{}' not found\n".format(e.errno, config_file))
 	exit(e.errno)
