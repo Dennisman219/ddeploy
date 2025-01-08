@@ -3,27 +3,34 @@
 # Imports
 import json, subprocess, os, sys, select
 
-# Opts
+# Arguments
 stdout = False
 stderr = True
 config_file = "deploy_config.json"
 exclusive = False
+
 for opt in sys.argv[1:]:
-	if opt == "-q":
+	if opt == "-h" or opt == "--help":
+		sys.stdout.write("Usage: {} [OPTIONS]\n".format(sys.argv[0].split('/')[-1]))
+		sys.stdout.write("Options:\n")
+		sys.stdout.write("  -h, --help\t\t\tShow this help message and exit\n")
+		sys.stdout.write("  -q, --quiet\t\t\tSuppress all output\n")
+		sys.stdout.write("  -v, --verbose\t\t\tEnable verbose output, including module stdout which is supressed by default\n")
+		sys.stdout.write("  -c, --config <file>\t\tSpecify a configuration file\n")
+		sys.stdout.write("  -s, --step <name>\t\tRun a specific step exclusively\n")
+		exit(0)
+	if opt == "-q" or opt == "--quiet":
 		stdout = False
 		stderr = False
-	elif opt == "-d":
+	elif opt == "-v" or opt == "--verbose":
 		stdout = True
 		stderr = True
-	elif opt == "-v":
-		stdout = True
-		stderr = True
-	elif opt == "-c":
-		i = sys.argv.index("-c")
+	elif opt == "-c" or opt == "--config":
+		i = sys.argv.index(opt)
 		config_file = sys.argv[i+1]
-	elif opt == "-s":
+	elif opt == "-s" or opt == "--step":
 		exclusive = True
-		i = sys.argv.index("-s")
+		i = sys.argv.index(opt)
 		step_name = sys.argv[i+1]
 
 # Functions
