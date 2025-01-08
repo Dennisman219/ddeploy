@@ -34,7 +34,7 @@ echo 'export PATH=$PATH:~/.local/ddeploy' >> ~/.bashrc
 To run the deployment script, use the following command:
 
 ```sh
-./deploy
+deploy
 ```
 
 by default the tool looks for a `deploy_config.json` configuration file in the current working directory, or in an optional `.deploy` directory in the current working directory.
@@ -52,7 +52,8 @@ Each step in the deployment process can be configured with the following variabl
 - `name`: Name of the step to recognise it during deployment
 - `module`: The module to execute in this step
 - `result` (optional): The return code expected for the module. If undefined only `0` is accepted. If defined as `-1` any return code is accepted.
-- `skip` (optional): `true/false`, define as true to no execute this step.
+- `skip` (optional): `true/false`, define as true to not execute this step.
+All other variables will be passed to the module as environment variables
 
 ## Modules
 Modules are scripts or executables that can be invoked by the deployment tool to perform specific tasks during the deployment process. Each module expects certain environment variables to be set, which are to be defined in the configuration file.
@@ -106,13 +107,13 @@ my-project/
 To run the deployment with a custom configuration file:
 
 ```sh
-./deploy -c custom_config.json
+deploy -c custom_config.json
 ```
 
 To run a specific step exclusively:
 
 ```sh
-./deploy -s "local command"
+deploy -s "local command"
 ```
 
 Example `deploy_config.json`:
