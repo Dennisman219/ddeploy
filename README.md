@@ -37,50 +37,60 @@ To run the deployment script, use the following command:
 deploy
 ```
 
-by default the tool looks for a `deploy_config.json` configuration file in the current working directory, or in an optional `.deploy` directory in the current working directory.
+by default the tool looks for a `deploy_config.yaml` configuration file in the current working directory, or in an optional `.deploy` directory in the current working directory.
 
 ### Command Line Options
-
-- `-q`: Quiet mode, suppresses all output.
-- `-d`: Debug mode, enables verbose output.
-- `-v`: Verbose mode, enables verbose output.
-- `-c <config_file>`: Specifies a custom configuration file.
-- `-s <step_name>`: Runs a specific step exclusively.
+- `-q`, `--quiet`: Quiet mode, suppresses all output.
+- `-d`, `--debug`: Debug mode, enables verbose output.
+- `-v`, `--verbose`: Verbose mode, enables verbose output.
+- `-c <config_file>`, `--config <config_file>`: Specifies a custom configuration file.
+- `-s <step_name>`, `--step <step_name>`: Runs a specific step exclusively.
 
 ## Step configuration
-Each step in the deployment process can be configured with the following variables:
-- `name`: Name of the step to recognise it during deployment
-- `module`: The module to execute in this step
-- `result` (optional): The return code expected for the module. If undefined only `0` is accepted. If defined as `-1` any return code is accepted.
-- `skip` (optional): `true/false`, define as true to not execute this step.
-All other variables will be passed to the module as environment variables
+
+Each step to be executed is defined as a yaml item following the following format:
+```yaml
+<name>:
+    module: <exampleModule>
+    <param1>: <value>
+    <param2>: <value>
+    [result]: <value>
+    [skip]: <value>
+```
+
+Each step in the deployment process can be configured with the following parameters:
+- `name`: Name of the step to recognize it during deployment.
+- `exampleModule`: The module to execute in this step.
+- `param1`, `param2`, etc.: Parameters specific to the module being used.
+- `result` (optional): Expected return code from the module execution.
+- `skip` (optional): Boolean to indicate if the step should be skipped.
 
 ## Modules
 Modules are scripts or executables that can be invoked by the deployment tool to perform specific tasks during the deployment process. Each module expects certain environment variables to be set, which are to be defined in the configuration file.
 
 ### Available Modules
 - `copyToTarget`: Copies a file to a target location using scp.
-    - expecting the following environment variables:
+    - expecting the following environment parameters:
     - `target`: the ssh hostname of target host
     - `file`: the file to be copied to the target
     - `target_location`: the location on the target machine to copy the file to
 - `localCommand`: Executes a local shell command.
-    - expecting the following environment variables:
+    - expecting the following environment parameters:
     - `command`: the shell command to execute locally
 - `remoteScript`: Copies a bash script to a remote target and executes it.
-    - expecting the following environment variables:
+    - expecting the following environment parameters:
     - `target`: the ssh hostname of target host
     - `script`: the local path to the script to execute 
 - `sshCommand`: Executes a shell command on a remote target using ssh.
-    - expecting the following environment variables:
+    - expecting the following environment parameters:
     - `target`: the ssh hostname of target host
     - `command`: the shell command the execute on the remote host
 - `subdeploy`: Changes to a specified directory and runs the deploy script.
-    - expecting the following environment variables:
+    - expecting the following environment parameters:
     - `working_directory`: the working directory to execute deploy in 
     - `deploy_config` (optional): the name of the configuration file to pass to deploy tool
 - `waitForUserInput`: Waits for user input with a timeout.
-    - expecting the following environment variables:
+    - expecting the following environment parameters:
     - `timeout`: how long to wait without user input before continuing 
 
 ## Custom Configuration and Modules
@@ -107,7 +117,7 @@ my-project/
 To run the deployment with a custom configuration file:
 
 ```sh
-deploy -c custom_config.json
+deploy -c custom_config.yaml
 ```
 
 To run a specific step exclusively:
@@ -116,51 +126,36 @@ To run a specific step exclusively:
 deploy -s "local command"
 ```
 
-Example `deploy_config.json`:
+Example `deploy_config.yaml`:
 
-```json
-{ "steps" : [
-    {
-        "name": "copy config file to target",
-        "module" : "copyToTarget",
-        "target": "user@hostname",
-        "file": "path/to/file",
-        "result" : -1 
-    },
-    {
-        "name": "local command",
-        "module": "localCommand",
-        "command": "echo 'Hello, world!'",
-        "skip" : true
-    },
-    {
-        "name": "execute remote script",
-        "module": "remoteScript",
-        "target": "user@hostname",
-        "script": "path/to/script.sh"
-    },
-    {
-        "name" : "execute remote shell command",
-        "module" : "sshCommand",
-        "target": "user@hostname",
-        "command" : "echo 'Hello, world!'"
-    },
-    {
-        "name": "run subdeploy",
-        "module": "subdeploy",
-        "working_directory": "path/to/subproject"
-    },
-    {
-        "name" : "run local command",
-        "module" : "localCommand",
-        "command" : "echo Hello, world!"
-    },
-    {
-        "name" : "wait for user input",
-        "module" : "waitForUserInput",
-        "timeout": 5,
-        "result": 142
-    }
-    ]
-}
+```yaml
+wait:
+    module: waitForUserInput
+    timeout: 5
+    result: 142
+
+copy_config:
+    module: copyToTarget
+    target: "user@hostname"
+    file: "path/to/file"
+    result: -1
+
+"command on local machine":
+    module: localCommand
+    command: "echo 'Hello, world!'"
+    skip: true
+
+remote_script:
+    module: remoteScript
+    target: "user@hostname"
+    script: "path/to/script.sh"
+
+remote_command:
+    module: sshCommand
+    target: "user@hostname"
+    command: "echo 'Hello, world!'"
+
+run subdeploy:
+    module: subdeploy
+    working_directory: "path/to/subproject"
 ```
