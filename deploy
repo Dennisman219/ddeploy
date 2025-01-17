@@ -112,6 +112,12 @@ for step_name, step in yaml_config.items():
 						err("[?] {}: {}".format(step['name'], line.decode('UTF-8')))
 		except ValueError:
 			pass
+		except KeyboardInterrupt:
+			p.terminate()
+			err("[!] {}: Interrupted by user.\n".format(step['name']))
+			clean_env_vars(step.items())
+			exit(130)
+
 	p.stdout.close()
 	p.stderr.close()
 
