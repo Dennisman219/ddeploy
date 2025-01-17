@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
 # Imports
-import json, subprocess, os, sys, select
+import yaml, subprocess, os, sys, select
 
 # Arguments
 stdout = False
 stderr = True
-config_file = "deploy_config.json"
+config_file = "deploy_config.yaml"
 exclusive = False
 
 for opt in sys.argv[1:]:
@@ -55,24 +55,23 @@ def clean_env_vars(items):
 
 # Main
 try:
-    if os.path.isfile(config_file):
-	    #config_file = "deploy_config.json"
-	    pass
-    elif os.path.isfile(".deploy/"+config_file):
-	    config_file = ".deploy/"+config_file
+	if os.path.isfile(config_file):
+		pass
+	elif os.path.isfile(".deploy/"+config_file):
+		config_file = ".deploy/"+config_file
 
-    json_config = json.load(open(config_file))
+	with open(config_file, 'r') as file:
+		yaml_config = yaml.safe_load(file)
 except FileNotFoundError as e:
 	sys.stderr.write("Error ({}): Configuration file '{}' not found\n".format(e.errno, config_file))
 	exit(e.errno)
 
-steps = json_config['steps']
-for step in steps:
+for step_name, step in yaml_config.items():
 	if 'skip' in step and step['skip'] == True:
 		continue
 
 	if 'name' not in step:
-		step['name'] = "unnamed_step"
+		step['name'] = step_name
 
 	if exclusive:
 		if step['name'] == step_name:
@@ -117,7 +116,7 @@ for step in steps:
 	p.stderr.close()
 
 	if 'result' in step:
-		if p.returncode == step['result'] or step['result'] == -1 :
+		if p.returncode == step['result'] or step['result'] == -1:
 			err("[*] {}: Done ({}).\n".format(step['name'], p.returncode))
 		else:
 			err("[!] {}: Failed. Module returned {}, expected {}\n".format(step['name'], p.returncode, step['result']))
