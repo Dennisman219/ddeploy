@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Check if required environment variables are set
+if [ -z "${source}" ] || [ -z "${destination}" ]; then
+    echo "Not all necessary variables are set." >&2
+    echo "Please make sure the following variables are set:" >&2
+    echo "source, destination" >&2
+    exit 1
+fi
+
+# Construct and execute the rsync command
+rsync ${options} \
+    --verbose --archive --recursive --safe-links --human-readable \
+    ${delete:+--delete} \
+    --exclude '.deploy' \
+    "${source}" "${destination}"

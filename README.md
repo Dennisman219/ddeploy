@@ -92,6 +92,12 @@ Modules are scripts or executables that can be invoked by the deployment tool to
 - `waitForUserInput`: Waits for user input with a timeout.
     - expecting the following environment parameters:
     - `timeout`: how long to wait without user input before continuing 
+- `rsync`: Synchronizes files or directories between the local machine and a remote target using `rsync` (must be installed on both systems).
+    - expecting the following environment parameters:
+    - `source`: the source file or directory to synchronize
+    - `destination`: target destination. Can include ssh host
+    - `delete`: `true` or `false`. Sets the `--delete` flag for `rsync` if true
+    - `options` (optional): additional options to pass to the `rsync` command
 
 ## Custom Configuration and Modules
 
@@ -158,4 +164,11 @@ remote_command:
 run subdeploy:                                  # Key can contain spaces
     module: subdeploy
     working_directory: "path/to/subproject"
+
+sync:
+    moduke: rsync
+    source: path/to/source
+    distination: ssh_target:path/to/destination
+    delete: true
+
 ```
