@@ -140,7 +140,7 @@ copy_config:
     file: "path/to/file"
     result: -1
 
-"command on local machine":
+"command on local machine":                     # Key can be a string
     module: localCommand
     command: "echo 'Hello, world!'"
     skip: true
@@ -155,7 +155,7 @@ remote_command:
     target: "user@hostname"
     command: "echo 'Hello, world!'"
 
-run subdeploy:
+run subdeploy:                                  # Key can contain spaces
     module: subdeploy
     working_directory: "path/to/subproject"
 ```
